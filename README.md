@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LinkedIn Job Extractor
 
-## Getting Started
+A modern web application that extracts and displays LinkedIn job descriptions in a clean, readable format.
 
-First, run the development server:
+## Features
+
+- 🔗 Extract job details from LinkedIn URLs
+- 📝 Display complete job descriptions with formatting
+- 🎨 Beautiful, responsive UI with Tailwind CSS
+- ⚡ Built with Next.js 15 and TypeScript
+- 🌐 Uses Cloudflare Browser Rendering for reliable scraping
+
+## Setup Instructions
+
+### 1. Install Dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Copy the example environment file:
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Sign up for a Cloudflare account at [https://dash.cloudflare.com/](https://dash.cloudflare.com/)
 
-## Learn More
+3. Enable Browser Rendering API:
+   - Go to your Cloudflare dashboard
+   - Navigate to "Workers & Pages" > "Browser Rendering"
+   - Enable the service
 
-To learn more about Next.js, take a look at the following resources:
+4. Get your credentials:
+   - **API Key**: Go to "My Profile" > "API Tokens" > "Global API Key"
+   - **Account ID**: Found in the right sidebar of any zone overview page
+   - **Email**: Your Cloudflare account email
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. Update `.env.local` with your actual credentials:
+```env
+CLOUDFLARE_EMAIL=your_email@example.com
+CLOUDFLARE_API_KEY=your_global_api_key
+CLOUDFLARE_ACCOUNT_ID=your_account_id
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 3. Run the Application
 
-## Deploy on Vercel
+```bash
+pnpm dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The application will be available at [http://localhost:3000](http://localhost:3000).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## How to Use
+
+1. Find a LinkedIn job posting
+2. Copy the job URL (e.g., `https://www.linkedin.com/jobs/view/1234567890/`)
+3. Paste the URL into the input field
+4. Click "Extract" to view the job description
+
+## Tech Stack
+
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS with custom components
+- **Scraping**: Cloudflare Browser Rendering API
+- **Parsing**: Cheerio for HTML parsing
+- **Icons**: Lucide React
+- **Package Manager**: pnpm
+
+## Project Structure
+
+```
+├── app/
+│   ├── api/scrape/          # API route for scraping
+│   ├── globals.css          # Global styles
+│   ├── layout.tsx           # Root layout
+│   └── page.tsx            # Main page component
+├── components/ui/           # Reusable UI components
+├── lib/
+│   ├── parse.ts            # LinkedIn scraper logic
+│   ├── scrape.ts           # Cloudflare Browser Rendering
+│   └── utils.ts            # Utility functions
+└── public/                 # Static assets
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
