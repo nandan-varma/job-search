@@ -199,15 +199,15 @@ async function scrapeInternal(url: string, retryCount = 0): Promise<string> {
         // Navigate with longer timeout for heavy sites like LinkedIn
         await page.goto(url, { 
             waitUntil: 'domcontentloaded',
-            timeout: 15000  // Increased to 15 seconds
+            timeout: 8000  // Increased to 8 seconds
         });
         
         // Wait for content to load - LinkedIn needs more time
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(1000);
         
         // Try to find job content
         try {
-            await page.waitForSelector('.base-card, .job-search-card, .main-job-card', { timeout: 2000 });
+            await page.waitForSelector('.base-card, .job-search-card, .main-job-card', { timeout: 1000 });
         } catch (e) {
             console.log('Job cards not found, continuing...');
         }
@@ -215,7 +215,7 @@ async function scrapeInternal(url: string, retryCount = 0): Promise<string> {
         // Handle cookie consent if present
         try {
             const cookieButton = page.locator('button[aria-label*="Accept"], button[data-tracking-control-name*="guest"]').first();
-            if (await cookieButton.isVisible({ timeout: 2000 })) {
+            if (await cookieButton.isVisible({ timeout: 500 })) {
                 await cookieButton.click();
                 await page.waitForTimeout(500);
             }
