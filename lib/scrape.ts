@@ -10,7 +10,7 @@ const MAX_CACHE_SIZE = 50; // Limit cache size
 
 // Rate limiting
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 1500; // 1.5 seconds between requests
+const MIN_REQUEST_INTERVAL = 3000; // 3 seconds between requests (increased from 1.5s)
 
 // Request deduplication - prevent multiple concurrent requests for the same URL
 const pendingRequests = new Map<string, Promise<string>>();
@@ -173,31 +173,36 @@ export default async function scrape(url: string): Promise<string> {
     return requestPromise;
 }
 
-// Internal scraping function
-async function scrapeInternal(url: string): Promise<string> {
+// Internal scraping function with retry logic
+async function scrapeInternal(url: string, retryCount = 0): Promise<string> {
+    const maxRetries = 2;
     let page;
     try {
         const browser = await getBrowser();
         page = await browser.newPage();
         
-        // Set realistic browser headers
+        // Set realistic browser headers and user agent
         await page.setExtraHTTPHeaders({
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
             'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
         });
         
         await page.setViewportSize({ width: 1280, height: 720 });
         
         console.log(`Scraping: ${url}`);
         
-        // Navigate with timeout
+        // Navigate with longer timeout for heavy sites like LinkedIn
         await page.goto(url, { 
             waitUntil: 'domcontentloaded',
-            timeout: 2000
+            timeout: 15000  // Increased to 15 seconds
         });
         
-        // Wait for content to load
+        // Wait for content to load - LinkedIn needs more time
         await page.waitForTimeout(2000);
         
         // Try to find job content
@@ -212,7 +217,7 @@ async function scrapeInternal(url: string): Promise<string> {
             const cookieButton = page.locator('button[aria-label*="Accept"], button[data-tracking-control-name*="guest"]').first();
             if (await cookieButton.isVisible({ timeout: 2000 })) {
                 await cookieButton.click();
-                await page.waitForTimeout(1000);
+                await page.waitForTimeout(500);
             }
         } catch (e) {
             // Cookie handling is optional

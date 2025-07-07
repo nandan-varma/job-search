@@ -91,7 +91,7 @@ export default function JobDetailsClient({
       const data = await response.json()
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to extract job details')
+        setError(data.error || 'Failed to extract job details')
       }
       
       console.log('Client: Job details received:', data)
