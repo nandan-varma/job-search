@@ -75,6 +75,7 @@ export class LinkedInScraper extends Scraper {
         
         return text
             .replace(/<!--[\s\S]*?-->/g, '')  // Remove HTML comments (optimized for multiline)
+            .replace(/<!--|-->/g, '')          // Strip any surviving comment tokens
             .replace(/\*+/g, '')              // Remove asterisks
             .replace(/\s+/g, ' ')             // Replace multiple whitespace with single space
             .replace(/[^\w\s\-.,!?()&$+]/g, '') // Remove special characters except common punctuation
@@ -87,6 +88,7 @@ export class LinkedInScraper extends Scraper {
         // Handle escaped characters common in scraped HTML - optimized with single pass
         return html
             .replace(/<!--[\s\S]*?-->/g, '')  // Remove all HTML comments (multiline)
+            .replace(/<!--|-->/g, '')          // Strip any surviving comment tokens
             .replace(/\\([nrt"\\])/g, (match, char) => {
                 switch (char) {
                     case 'n': return '\n';
@@ -286,8 +288,13 @@ export class LinkedInScraper extends Scraper {
 
 // Factory function to create the appropriate scraper based on URL
 export function createScraper(url: string): Scraper {
-    if (url.includes('linkedin.com')) {
-        return new LinkedInScraper();
+    try {
+        const { hostname } = new URL(url);
+        if (hostname === 'linkedin.com' || hostname.endsWith('.linkedin.com')) {
+            return new LinkedInScraper();
+        }
+    } catch {
+        // Invalid URL: fall through to the error below
     }
     
     // Add other scrapers for different job sites here
