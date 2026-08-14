@@ -60,22 +60,35 @@ export class LinkedInScraper extends Scraper {
     scrape(html: string): JobData | null {
         const cleanHtml = this.preprocessHtml(html);
         const $ = cheerio.load(cleanHtml);
+        this.removeHtmlComments($);
         return this.extractJobDetail($);
     }
 
     scrapeSearchResults(html: string): SearchResults {
         const cleanHtml = this.preprocessHtml(html);
         const $ = cheerio.load(cleanHtml);
+        this.removeHtmlComments($);
 
         return this.extractJobSearchResults($);
+    }
+
+    // Remove HTML comment nodes via the DOM (not regex, which is fragile against
+    // unterminated or nested comment markers).
+    private removeHtmlComments($: cheerio.CheerioAPI): void {
+        $.root()
+            .find("*")
+            .addBack()
+            .contents()
+            .filter((_, el) => el.type === "comment")
+            .remove();
     }
 
     private cleanText(text: string): string {
         if (!text) return '';
         
+        // Note: HTML comments are already removed by removeHtmlComments() after
+        // cheerio.load(); cheerio's .text() never includes them.
         return text
-            .replace(/<!--[\s\S]*?-->/g, '')  // Remove HTML comments (optimized for multiline)
-            .replace(/<!--|-->/g, '')          // Strip any surviving comment tokens
             .replace(/\*+/g, '')              // Remove asterisks
             .replace(/\s+/g, ' ')             // Replace multiple whitespace with single space
             .replace(/[^\w\s\-.,!?()&$+]/g, '') // Remove special characters except common punctuation
@@ -86,9 +99,9 @@ export class LinkedInScraper extends Scraper {
         if (!html) return '';
         
         // Handle escaped characters common in scraped HTML - optimized with single pass
+        // HTML comments are removed post-load by removeHtmlComments(); no regex
+        // comment stripping here (CodeQL js/bad-tag-filter).
         return html
-            .replace(/<!--[\s\S]*?-->/g, '')  // Remove all HTML comments (multiline)
-            .replace(/<!--|-->/g, '')          // Strip any surviving comment tokens
             .replace(/\\([nrt"\\])/g, (match, char) => {
                 switch (char) {
                     case 'n': return '\n';
